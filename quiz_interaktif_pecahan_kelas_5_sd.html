@@ -1,0 +1,882 @@
+<!DOCTYPE html>
+<html lang="id">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Kuis Interaktif: Perkalian & Pembagian Pecahan Kelas 5 SD</title>
+    <script src="https://cdn.tailwindcss.com"></script>
+    <link href="https://fonts.googleapis.com/css2?family=Plus+Jakarta+Sans:wght@400;600;700;800&display=swap" rel="stylesheet">
+    <style>
+        body {
+            font-family: 'Plus Jakarta Sans', sans-serif;
+            background-color: #f8fafc;
+        }
+        /* Pecahan Tegak Lurus Standardized - Inline Mode */
+        .frac {
+            display: inline-flex;
+            flex-direction: column;
+            vertical-align: middle;
+            text-align: center;
+            font-weight: 700;
+            padding: 0 2px;
+            margin: 0 2px;
+            line-height: 1;
+            font-size: 0.9em;
+        }
+        .frac .top {
+            border-bottom: 2px solid currentColor;
+            padding-bottom: 1px;
+            line-height: 1;
+        }
+        .frac .bottom {
+            padding-top: 1px;
+            line-height: 1;
+        }
+        .mixed-num {
+            display: inline-flex;
+            align-items: center;
+            gap: 2px;
+            font-weight: 700;
+            vertical-align: middle;
+            margin: 0 2px;
+        }
+    </style>
+</head>
+<body class="text-slate-800 pb-16">
+
+    <!-- Header / Navibar -->
+    <header class="bg-indigo-600 text-white sticky top-0 z-50 shadow-md">
+        <div class="max-w-5xl mx-auto px-4 py-3 flex flex-wrap justify-between items-center gap-3">
+            <div>
+                <span class="bg-indigo-500 text-indigo-100 text-xs font-bold px-2.5 py-0.5 rounded-full uppercase tracking-wide">Matematika Kelas 5</span>
+                <h1 class="text-lg sm:text-xl font-extrabold mt-0.5">Kuis Perkalian & Pembagian Pecahan</h1>
+            </div>
+            
+            <div class="flex items-center gap-2">
+                <div class="bg-indigo-700/70 border border-indigo-400/30 px-3 py-1.5 rounded-xl text-xs font-semibold flex items-center gap-3">
+                    <div>Dijawab: <span id="stat-answered" class="font-extrabold text-white">0</span>/30</div>
+                    <div class="w-px h-4 bg-indigo-400/40"></div>
+                    <div>Skor: <span id="stat-score" class="font-extrabold text-emerald-300">0</span></div>
+                </div>
+                <button onclick="confirmReset()" class="bg-rose-500 hover:bg-rose-600 text-white text-xs font-bold px-3 py-2 rounded-xl transition shadow-sm">
+                    Reset
+                </button>
+            </div>
+        </div>
+    </header>
+
+    <main class="max-w-5xl mx-auto px-4 mt-6 grid grid-cols-1 lg:grid-cols-12 gap-6">
+
+        <!-- Sidebar / Navigation Grid Soal (Kiri di Desktop) -->
+        <aside class="lg:col-span-4 order-2 lg:order-1">
+            <div class="bg-white p-5 rounded-2xl shadow-sm border border-slate-200 sticky top-20">
+                <div class="flex justify-between items-center mb-3">
+                    <h2 class="font-bold text-slate-800 text-sm">Navigasi Soal (1 - 30)</h2>
+                    <span id="save-status" class="text-[11px] font-bold text-emerald-600 bg-emerald-50 px-2 py-0.5 rounded-full border border-emerald-200">
+                        💾 Tersimpan
+                    </span>
+                </div>
+
+                <!-- Progress Bar -->
+                <div class="w-full bg-slate-100 h-2.5 rounded-full overflow-hidden mb-4">
+                    <div id="progress-bar" class="bg-indigo-600 h-full transition-all duration-300" style="width: 0%"></div>
+                </div>
+
+                <!-- Navigasi Filter Button -->
+                <div class="grid grid-cols-3 gap-1 mb-4 bg-slate-100 p-1 rounded-xl text-[11px] font-semibold">
+                    <button onclick="setFilter('all')" id="btn-filter-all" class="py-1 rounded-lg bg-white shadow-sm text-slate-800 font-bold">Semua</button>
+                    <button onclick="setFilter('unanswered')" id="btn-filter-unanswered" class="py-1 rounded-lg text-slate-600 hover:text-slate-900">Belum</button>
+                    <button onclick="setFilter('answered')" id="btn-filter-answered" class="py-1 rounded-lg text-slate-600 hover:text-slate-900">Sudah</button>
+                </div>
+
+                <!-- Grid Tombol Nomor -->
+                <div id="question-grid" class="grid grid-cols-5 gap-2 max-h-[320px] overflow-y-auto pr-1">
+                    <!-- Dynamic rendering by JS -->
+                </div>
+
+                <!-- Keterangan Warna -->
+                <div class="mt-4 pt-3 border-t border-slate-100 grid grid-cols-3 gap-1 text-[10px] text-slate-500 font-medium">
+                    <div class="flex items-center gap-1.5"><span class="w-2.5 h-2.5 rounded-full bg-slate-200 inline-block"></span> Belum</div>
+                    <div class="flex items-center gap-1.5"><span class="w-2.5 h-2.5 rounded-full bg-emerald-500 inline-block"></span> Benar</div>
+                    <div class="flex items-center gap-1.5"><span class="w-2.5 h-2.5 rounded-full bg-rose-500 inline-block"></span> Salah</div>
+                </div>
+            </div>
+        </aside>
+
+        <!-- Main Display Soal (Kanan di Desktop) -->
+        <section class="lg:col-span-8 order-1 lg:order-2 space-y-4">
+            
+            <!-- Card Soal -->
+            <div class="bg-white p-6 rounded-2xl shadow-sm border border-slate-200 min-h-[420px] flex flex-col justify-between">
+                <div>
+                    <!-- Top Info Card -->
+                    <div class="flex justify-between items-center mb-4 pb-3 border-b border-slate-100">
+                        <div class="flex items-center gap-2">
+                            <span id="question-category" class="text-[11px] font-extrabold px-2.5 py-1 rounded-lg bg-indigo-50 text-indigo-700 border border-indigo-100 uppercase">
+                                Soal Langsung
+                            </span>
+                            <span id="question-number-badge" class="text-xs font-bold text-slate-400">
+                                Nomor 1 dari 30
+                            </span>
+                        </div>
+                        <span id="question-status-badge" class="text-xs font-bold text-slate-500">
+                            ⚪ Belum Diisi
+                        </span>
+                    </div>
+
+                    <!-- Question Text -->
+                    <div id="question-text" class="text-base sm:text-lg font-bold text-slate-900 mb-6 leading-[2.2] text-left">
+                        <!-- Dynamic Question HTML -->
+                    </div>
+
+                    <!-- Answer Options Grid -->
+                    <div id="options-container" class="space-y-3">
+                        <!-- Dynamic Options HTML -->
+                    </div>
+
+                    <!-- Pembahasan / Explanation Box (Hidden initially) -->
+                    <div id="explanation-box" class="mt-6 p-4 rounded-xl border hidden transition-all duration-300 text-xs sm:text-sm">
+                        <div class="font-extrabold text-slate-900 mb-1 flex items-center gap-2">
+                            <span>💡 Pembahasan & Cara Penyelesaian:</span>
+                        </div>
+                        <div id="explanation-text" class="text-slate-700 space-y-1.5 leading-[2.2]">
+                            <!-- Dynamic Explanation -->
+                        </div>
+                    </div>
+                </div>
+
+                <!-- Navigation Bottom Buttons -->
+                <div class="flex justify-between items-center mt-8 pt-4 border-t border-slate-100">
+                    <button onclick="prevQuestion()" id="btn-prev" class="px-4 py-2 bg-slate-100 hover:bg-slate-200 text-slate-700 font-bold text-xs rounded-xl transition flex items-center gap-1.5 disabled:opacity-40">
+                        ← Sebelumnya
+                    </button>
+
+                    <div class="text-xs font-semibold text-slate-400">
+                        <span id="current-index-display">1</span> / 30
+                    </div>
+
+                    <button onclick="nextQuestion()" id="btn-next" class="px-4 py-2 bg-indigo-600 hover:bg-indigo-700 text-white font-bold text-xs rounded-xl transition flex items-center gap-1.5 disabled:opacity-40">
+                        Selanjutnya →
+                    </button>
+                </div>
+            </div>
+
+            <!-- Score Summary Card (Appears/Updates dynamically) -->
+            <div id="summary-card" class="bg-gradient-to-r from-indigo-600 to-purple-600 text-white p-5 rounded-2xl shadow-sm flex flex-col sm:flex-row justify-between items-center gap-4">
+                <div>
+                    <h3 class="font-extrabold text-base">Ringkasan Hasil Kuis Anda</h3>
+                    <p class="text-xs text-indigo-100 mt-0.5">Progres otomatis tersimpan. Anda dapat kembali kapan saja!</p>
+                </div>
+                <div class="flex items-center gap-4 bg-white/10 p-3 rounded-xl backdrop-blur-sm border border-white/20">
+                    <div class="text-center">
+                        <p class="text-[10px] text-indigo-200 uppercase font-bold">Benar</p>
+                        <p id="sum-correct" class="text-lg font-black text-emerald-300">0</p>
+                    </div>
+                    <div class="w-px h-6 bg-white/20"></div>
+                    <div class="text-center">
+                        <p class="text-[10px] text-indigo-200 uppercase font-bold">Salah</p>
+                        <p id="sum-wrong" class="text-lg font-black text-rose-300">0</p>
+                    </div>
+                    <div class="w-px h-6 bg-white/20"></div>
+                    <div class="text-center">
+                        <p class="text-[10px] text-indigo-200 uppercase font-bold">Nilai Akhir</p>
+                        <p id="sum-score" class="text-xl font-black text-amber-300">0</p>
+                    </div>
+                </div>
+            </div>
+
+        </section>
+
+    </main>
+
+    <!-- Modal Konfirmasi Reset -->
+    <div id="reset-modal" class="fixed inset-0 bg-slate-900/60 backdrop-blur-sm z-50 flex items-center justify-center p-4 hidden">
+        <div class="bg-white rounded-2xl p-6 max-w-sm w-full shadow-xl border border-slate-100 text-center space-y-4">
+            <div class="w-12 h-12 bg-rose-100 text-rose-600 rounded-2xl flex items-center justify-center mx-auto text-xl font-bold">
+                ⚠️
+            </div>
+            <div>
+                <h3 class="font-extrabold text-slate-900 text-base">Reset Semua Jawaban?</h3>
+                <p class="text-xs text-slate-500 mt-1">Semua progres dan jawaban 30 soal akan dihapus secara permanen.</p>
+            </div>
+            <div class="grid grid-cols-2 gap-2 pt-2">
+                <button onclick="closeResetModal()" class="py-2.5 bg-slate-100 hover:bg-slate-200 text-slate-700 rounded-xl font-bold text-xs transition">
+                    Batal
+                </button>
+                <button onclick="executeReset()" class="py-2.5 bg-rose-600 hover:bg-rose-700 text-white rounded-xl font-bold text-xs transition">
+                    Ya, Hapus
+                </button>
+            </div>
+        </div>
+    </div>
+
+    <script>
+        // Helper function rendering pecahan HTML
+        function renderFrac(top, bottom) {
+            return `<span class="frac"><span class="top">${top}</span><span class="bottom">${bottom}</span></span>`;
+        }
+
+        function renderMixed(whole, top, bottom) {
+            return `<span class="mixed-num"><span>${whole}</span>${renderFrac(top, bottom)}</span>`;
+        }
+
+        // DATABASE 30 SOAL (20 Soal Langsung + 10 Soal Cerita)
+        // Opsi A, B, C, D didistribusikan seimbang dan acak
+        const quizData = [
+            // SOAL LANGSUNG (1 - 20)
+            {
+                id: 1,
+                category: "Soal Langsung",
+                qText: `${renderFrac(1, 3)} × 5 = ...`,
+                options: [
+                    { text: renderMixed(1, 1, 3), isCorrect: false },
+                    { text: renderFrac(4, 3), isCorrect: false },
+                    { text: renderMixed(1, 2, 3), isCorrect: true },
+                    { text: renderMixed(2, 1, 3), isCorrect: false }
+                ],
+                explanation: `1. Ubah 5 menjadi ${renderFrac(5, 1)}<br>2. Kalikan pembilang dengan pembilang, penyebut dengan penyebut: ${renderFrac('1 × 5', '3 × 1')} = ${renderFrac(5, 3)}<br>3. Ubah ke pecahan campuran: 5 ÷ 3 = 1 sisa 2, jadi ${renderMixed(1, 2, 3)}.`
+            },
+            {
+                id: 2,
+                category: "Soal Langsung",
+                qText: `6 × ${renderFrac(3, 8)} = ...`,
+                options: [
+                    { text: renderMixed(2, 1, 4), isCorrect: true },
+                    { text: renderMixed(2, 3, 8), isCorrect: false },
+                    { text: renderFrac(9, 8), isCorrect: false },
+                    { text: renderMixed(1, 7, 8), isCorrect: false }
+                ],
+                explanation: `1. Hitung: ${renderFrac('6 × 3', 8)} = ${renderFrac(18, 8)}<br>2. Sederhanakan bagi 2: ${renderFrac(9, 4)}<br>3. Ubah ke pecahan campuran: 9 ÷ 4 = 2 sisa 1, jadi ${renderMixed(2, 1, 4)}.`
+            },
+            {
+                id: 3,
+                category: "Soal Langsung",
+                qText: `${renderFrac(2, 5)} × ${renderFrac(3, 7)} = ...`,
+                options: [
+                    { text: renderFrac(5, 12), isCorrect: false },
+                    { text: renderFrac(6, 12), isCorrect: false },
+                    { text: renderFrac(5, 35), isCorrect: false },
+                    { text: renderFrac(6, 35), isCorrect: true }
+                ],
+                explanation: `Kalikan langsung pembilang dengan pembilang dan penyebut dengan penyebut:<br>${renderFrac('2 × 3', '5 × 7')} = ${renderFrac(6, 35)}.`
+            },
+            {
+                id: 4,
+                category: "Soal Langsung",
+                qText: `${renderFrac(4, 9)} × ${renderFrac(3, 8)} = ...`,
+                options: [
+                    { text: renderFrac(1, 3), isCorrect: false },
+                    { text: renderFrac(1, 6), isCorrect: true },
+                    { text: renderFrac(1, 8), isCorrect: false },
+                    { text: renderFrac(1, 12), isCorrect: false }
+                ],
+                explanation: `1. Kalikan: ${renderFrac('4 × 3', '9 × 8')} = ${renderFrac(12, 72)}<br>2. Sederhanakan dengan membagi pembilang dan penyebut dengan 12: ${renderFrac('12 ÷ 12', '72 ÷ 12')} = ${renderFrac(1, 6)}.`
+            },
+            {
+                id: 5,
+                category: "Soal Langsung",
+                qText: `${renderFrac(5, 6)} × ${renderFrac(3, 10)} = ...`,
+                options: [
+                    { text: renderFrac(1, 2), isCorrect: false },
+                    { text: renderFrac(1, 3), isCorrect: false },
+                    { text: renderFrac(1, 4), isCorrect: true },
+                    { text: renderFrac(1, 5), isCorrect: false }
+                ],
+                explanation: `1. Kalikan: ${renderFrac('5 × 3', '6 × 10')} = ${renderFrac(15, 60)}<br>2. Sederhanakan (bagi 15): ${renderFrac('15 ÷ 15', '60 ÷ 15')} = ${renderFrac(1, 4)}.`
+            },
+            {
+                id: 6,
+                category: "Soal Langsung",
+                qText: `${renderMixed(1, 1, 2)} × ${renderFrac(2, 3)} = ...`,
+                options: [
+                    { text: `1`, isCorrect: true },
+                    { text: renderFrac(2, 3), isCorrect: false },
+                    { text: renderMixed(1, 1, 3), isCorrect: false },
+                    { text: renderFrac(3, 4), isCorrect: false }
+                ],
+                explanation: `1. Ubah pecahan campuran ${renderMixed(1, 1, 2)} menjadi pecahan biasa: ${renderFrac(3, 2)}<br>2. Kalikan: ${renderFrac(3, 2)} × ${renderFrac(2, 3)} = ${renderFrac(6, 6)} = 1.`
+            },
+            {
+                id: 7,
+                category: "Soal Langsung",
+                qText: `${renderFrac(5, 8)} ÷ 2 = ...`,
+                options: [
+                    { text: renderFrac(5, 4), isCorrect: false },
+                    { text: renderFrac(5, 16), isCorrect: true },
+                    { text: renderMixed(1, 1, 4), isCorrect: false },
+                    { text: renderFrac(10, 8), isCorrect: false }
+                ],
+                explanation: `Gunakan metode <strong>KFC</strong>:<br>1. <strong>Keep</strong>: ${renderFrac(5, 8)}<br>2. <strong>Change</strong>: ÷ menjadi ×<br>3. <strong>Flip</strong>: 2 (${renderFrac(2, 1)}) dibalik menjadi ${renderFrac(1, 2)}<br>Hitung: ${renderFrac(5, 8)} × ${renderFrac(1, 2)} = ${renderFrac(5, 16)}.`
+            },
+            {
+                id: 8,
+                category: "Soal Langsung",
+                qText: `4 ÷ ${renderFrac(2, 3)} = ...`,
+                options: [
+                    { text: renderFrac(8, 3), isCorrect: false },
+                    { text: renderMixed(2, 2, 3), isCorrect: false },
+                    { text: `4`, isCorrect: false },
+                    { text: `6`, isCorrect: true }
+                ],
+                explanation: `Metode <strong>KFC</strong>:<br>1. Keep: 4 (${renderFrac(4, 1)})<br>2. Change: ÷ jadi ×<br>3. Flip: ${renderFrac(2, 3)} dibalik jadi ${renderFrac(3, 2)}<br>Hitung: 4 × ${renderFrac(3, 2)} = ${renderFrac(12, 2)} = 6.`
+            },
+            {
+                id: 9,
+                category: "Soal Langsung",
+                qText: `${renderFrac(3, 5)} ÷ ${renderFrac(9, 10)} = ...`,
+                options: [
+                    { text: renderFrac(2, 3), isCorrect: true },
+                    { text: renderFrac(3, 2), isCorrect: false },
+                    { text: renderFrac(27, 50), isCorrect: false },
+                    { text: renderFrac(3, 5), isCorrect: false }
+                ],
+                explanation: `Langkah KFC:<br>${renderFrac(3, 5)} × ${renderFrac(10, 9)} = ${renderFrac(30, 45)}<br>Sederhanakan dengan membagi 15: ${renderFrac('30 ÷ 15', '45 ÷ 15')} = ${renderFrac(2, 3)}.`
+            },
+            {
+                id: 10,
+                category: "Soal Langsung",
+                qText: `${renderFrac(7, 12)} ÷ ${renderFrac(1, 4)} = ...`,
+                options: [
+                    { text: renderFrac(7, 48), isCorrect: false },
+                    { text: renderMixed(1, 3, 4), isCorrect: false },
+                    { text: renderMixed(2, 1, 3), isCorrect: true },
+                    { text: renderMixed(2, 1, 4), isCorrect: false }
+                ],
+                explanation: `Langkah KFC:<br>${renderFrac(7, 12)} × ${renderFrac(4, 1)} = ${renderFrac(28, 12)}<br>Sederhanakan bagi 4: ${renderFrac(7, 3)} = ${renderMixed(2, 1, 3)}.`
+            },
+            {
+                id: 11,
+                category: "Soal Langsung",
+                qText: `${renderFrac(4, 5)} ÷ ${renderFrac(8, 15)} = ...`,
+                options: [
+                    { text: renderFrac(32, 75), isCorrect: false },
+                    { text: renderMixed(1, 1, 2), isCorrect: true },
+                    { text: renderMixed(1, 1, 3), isCorrect: false },
+                    { text: renderFrac(2, 3), isCorrect: false }
+                ],
+                explanation: `Langkah KFC:<br>${renderFrac(4, 5)} × ${renderFrac(15, 8)} = ${renderFrac(60, 40)}<br>Sederhanakan bagi 20: ${renderFrac(3, 2)} = ${renderMixed(1, 1, 2)}.`
+            },
+            {
+                id: 12,
+                category: "Soal Langsung",
+                qText: `${renderMixed(2, 1, 4)} ÷ ${renderFrac(3, 4)} = ...`,
+                options: [
+                    { text: renderFrac(27, 16), isCorrect: false },
+                    { text: renderMixed(1, 1, 2), isCorrect: false },
+                    { text: `2`, isCorrect: false },
+                    { text: `3`, isCorrect: true }
+                ],
+                explanation: `1. Ubah ${renderMixed(2, 1, 4)} menjadi pecahan biasa: ${renderFrac(9, 4)}<br>2. Gunakan KFC: ${renderFrac(9, 4)} × ${renderFrac(4, 3)} = ${renderFrac(36, 12)} = 3.`
+            },
+            {
+                id: 13,
+                category: "Soal Langsung",
+                qText: `${renderFrac(3, 7)} × ${renderFrac(14, 15)} = ...`,
+                options: [
+                    { text: renderFrac(2, 5), isCorrect: true },
+                    { text: renderFrac(3, 5), isCorrect: false },
+                    { text: renderFrac(42, 105), isCorrect: false },
+                    { text: renderFrac(1, 3), isCorrect: false }
+                ],
+                explanation: `Kalikan langsung:<br>${renderFrac('3 × 14', '7 × 15')} = ${renderFrac(42, 105)}<br>Sederhanakan dengan membagi 21: ${renderFrac('42 ÷ 21', '105 ÷ 21')} = ${renderFrac(2, 5)}.`
+            },
+            {
+                id: 14,
+                category: "Soal Langsung",
+                qText: `8 × ${renderFrac(5, 12)} = ...`,
+                options: [
+                    { text: renderMixed(3, 1, 2), isCorrect: false },
+                    { text: renderMixed(2, 2, 3), isCorrect: false },
+                    { text: renderMixed(3, 1, 3), isCorrect: true },
+                    { text: renderFrac(10, 3), isCorrect: false }
+                ],
+                explanation: `1. Hitung: ${renderFrac('8 × 5', 12)} = ${renderFrac(40, 12)}<br>2. Sederhanakan bagi 4: ${renderFrac(10, 3)}<br>3. Ubah ke pecahan campuran: 10 ÷ 3 = 3 sisa 1, jadi ${renderMixed(3, 1, 3)}.`
+            },
+            {
+                id: 15,
+                category: "Soal Langsung",
+                qText: `${renderFrac(9, 10)} ÷ 3 = ...`,
+                options: [
+                    { text: renderFrac(27, 10), isCorrect: false },
+                    { text: renderFrac(3, 10), isCorrect: true },
+                    { text: renderMixed(2, 7, 10), isCorrect: false },
+                    { text: renderFrac(3, 30), isCorrect: false }
+                ],
+                explanation: `Gunakan KFC:<br>${renderFrac(9, 10)} × ${renderFrac(1, 3)} = ${renderFrac(9, 30)}<br>Sederhanakan bagi 3: ${renderFrac(3, 10)}.`
+            },
+            {
+                id: 16,
+                category: "Soal Langsung",
+                qText: `${renderFrac(5, 9)} × ${renderFrac(3, 5)} = ...`,
+                options: [
+                    { text: renderFrac(1, 5), isCorrect: false },
+                    { text: renderFrac(3, 9), isCorrect: false },
+                    { text: renderFrac(1, 4), isCorrect: false },
+                    { text: renderFrac(1, 3), isCorrect: true }
+                ],
+                explanation: `Kalikan: ${renderFrac('5 × 3', '9 × 5')} = ${renderFrac(15, 45)}<br>Sederhanakan dengan membagi 15: ${renderFrac(1, 3)}.`
+            },
+            {
+                id: 17,
+                category: "Soal Langsung",
+                qText: `${renderFrac(6, 11)} ÷ ${renderFrac(3, 11)} = ...`,
+                options: [
+                    { text: `2`, isCorrect: true },
+                    { text: renderFrac(18, 121), isCorrect: false },
+                    { text: renderFrac(1, 2), isCorrect: false },
+                    { text: `3`, isCorrect: false }
+                ],
+                explanation: `Gunakan KFC:<br>${renderFrac(6, 11)} × ${renderFrac(11, 3)} = ${renderFrac(66, 33)} = 2.`
+            },
+            {
+                id: 18,
+                category: "Soal Langsung",
+                qText: `${renderFrac(7, 8)} × ${renderFrac(4, 7)} = ...`,
+                options: [
+                    { text: renderFrac(1, 4), isCorrect: false },
+                    { text: renderFrac(1, 2), isCorrect: true },
+                    { text: renderFrac(28, 56), isCorrect: false },
+                    { text: renderFrac(3, 4), isCorrect: false }
+                ],
+                explanation: `Kalikan: ${renderFrac('7 × 4', '8 × 7')} = ${renderFrac(28, 56)}<br>Sederhanakan bagi 28: ${renderFrac(1, 2)}.`
+            },
+            {
+                id: 19,
+                category: "Soal Langsung",
+                qText: `5 ÷ ${renderFrac(5, 6)} = ...`,
+                options: [
+                    { text: renderFrac(25, 6), isCorrect: false },
+                    { text: renderMixed(4, 1, 6), isCorrect: false },
+                    { text: `6`, isCorrect: true },
+                    { text: `5`, isCorrect: false }
+                ],
+                explanation: `Gunakan KFC:<br>5 × ${renderFrac(6, 5)} = ${renderFrac(30, 5)} = 6.`
+            },
+            {
+                id: 20,
+                category: "Soal Langsung",
+                qText: `${renderMixed(1, 3, 5)} × ${renderMixed(2, 1, 2)} = ...`,
+                options: [
+                    { text: renderMixed(2, 3, 10), isCorrect: false },
+                    { text: renderMixed(3, 1, 2), isCorrect: false },
+                    { text: renderFrac(20, 5), isCorrect: false },
+                    { text: `4`, isCorrect: true }
+                ],
+                explanation: `1. Ubah kedua pecahan campuran ke pecahan biasa: ${renderFrac(8, 5)} dan ${renderFrac(5, 2)}<br>2. Kalikan: ${renderFrac(8, 5)} × ${renderFrac(5, 2)} = ${renderFrac(40, 10)} = 4.`
+            },
+
+            // SOAL CERITA (21 - 30)
+            {
+                id: 21,
+                category: "Soal Cerita",
+                qText: `Ibu memiliki ${renderFrac(3, 4)} kg gula pasir. Ibu menggunakan ${renderFrac(1, 3)} bagian dari gula tersebut untuk membuat kue. Berapa kg gula yang digunakan Ibu?`,
+                options: [
+                    { text: `${renderFrac(1, 4)} kg`, isCorrect: true },
+                    { text: `${renderFrac(1, 2)} kg`, isCorrect: false },
+                    { text: `${renderFrac(3, 12)} kg`, isCorrect: false },
+                    { text: `${renderFrac(2, 3)} kg`, isCorrect: false }
+                ],
+                explanation: `Mencari bagian dari jumlah gunakan perkalian:<br>${renderFrac(3, 4)} × ${renderFrac(1, 3)} = ${renderFrac(3, 12)}<br>Sederhanakan bagi 3: ${renderFrac(1, 4)} kg.`
+            },
+            {
+                id: 22,
+                category: "Soal Cerita",
+                qText: `Pak Budi mempunyai tali sepanjang 5 meter. Tali tersebut dipotong-potong menjadi beberapa bagian yang masing-masing panjangnya ${renderFrac(1, 2)} meter. Berapa potong tali yang diperoleh Pak Budi?`,
+                options: [
+                    { text: `8 potong`, isCorrect: false },
+                    { text: `2,5 potong`, isCorrect: false },
+                    { text: `10 potong`, isCorrect: true },
+                    { text: `12 potong`, isCorrect: false }
+                ],
+                explanation: `Membagi panjang total dengan panjang tiap potongan (pembagian):<br>5 ÷ ${renderFrac(1, 2)} = 5 × ${renderFrac(2, 1)} = 10 potong.`
+            },
+            {
+                id: 23,
+                category: "Soal Cerita",
+                qText: `Sebuah botol berisi ${renderFrac(4, 5)} liter jus jeruk. Rina meminum ${renderFrac(1, 2)} bagian dari jus tersebut. Berapa liter jus jeruk yang diminum Rina?`,
+                options: [
+                    { text: `${renderFrac(3, 10)} liter`, isCorrect: false },
+                    { text: `${renderFrac(2, 5)} liter`, isCorrect: true },
+                    { text: `${renderFrac(1, 5)} liter`, isCorrect: false },
+                    { text: `${renderFrac(3, 5)} liter`, isCorrect: false }
+                ],
+                explanation: `Perkalian pecahan:<br>${renderFrac(4, 5)} × ${renderFrac(1, 2)} = ${renderFrac(4, 10)}<br>Sederhanakan bagi 2: ${renderFrac(2, 5)} liter.`
+            },
+            {
+                id: 24,
+                category: "Soal Cerita",
+                qText: `Pak Ahmad membagikan ${renderFrac(3, 4)} hektar tanahnya kepada 3 orang anaknya secara adil. Berapa hektar tanah yang diterima oleh masing-masing anak?`,
+                options: [
+                    { text: `${renderFrac(9, 4)} hektar`, isCorrect: false },
+                    { text: `${renderFrac(1, 2)} hektar`, isCorrect: false },
+                    { text: `${renderFrac(1, 3)} hektar`, isCorrect: false },
+                    { text: `${renderFrac(1, 4)} hektar`, isCorrect: true }
+                ],
+                explanation: `Pembagian pecahan dengan bilangan cacah:<br>${renderFrac(3, 4)} ÷ 3 = ${renderFrac(3, 4)} × ${renderFrac(1, 3)} = ${renderFrac(3, 12)} = ${renderFrac(1, 4)} hektar.`
+            },
+            {
+                id: 25,
+                category: "Soal Cerita",
+                qText: `Dalam satu kelas terdapat 30 siswa. Sebanyak ${renderFrac(2, 5)} dari seluruh siswa menyukai pelajaran Matematika. Berapa jumlah siswa yang menyukai Matematika?`,
+                options: [
+                    { text: `12 siswa`, isCorrect: true },
+                    { text: `15 siswa`, isCorrect: false },
+                    { text: `10 siswa`, isCorrect: false },
+                    { text: `18 siswa`, isCorrect: false }
+                ],
+                explanation: `Perkalian bilangan cacah dengan pecahan:<br>30 × ${renderFrac(2, 5)} = ${renderFrac('30 × 2', 5)} = ${renderFrac(60, 5)} = 12 siswa.`
+            },
+            {
+                id: 26,
+                category: "Soal Cerita",
+                qText: `Kakak memiliki ${renderMixed(4, 1, 2)} meter pita merah. Pita tersebut dipotong menjadi beberapa bagian sama panjang, masing-masing ${renderFrac(3, 4)} meter. Berapa potongan pita yang didapat Kakak?`,
+                options: [
+                    { text: `4 potong`, isCorrect: false },
+                    { text: `6 potong`, isCorrect: true },
+                    { text: `5 potong`, isCorrect: false },
+                    { text: `8 potong`, isCorrect: false }
+                ],
+                explanation: `1. Ubah ${renderMixed(4, 1, 2)} ke pecahan biasa: ${renderFrac(9, 2)}<br>2. Gunakan KFC: ${renderFrac(9, 2)} ÷ ${renderFrac(3, 4)} = ${renderFrac(9, 2)} × ${renderFrac(4, 3)} = ${renderFrac(36, 6)} = 6 potong.`
+            },
+            {
+                id: 27,
+                category: "Soal Cerita",
+                qText: `Bibi membawa 3 kue bolu ke sekolah. Setiap siswa mendapatkan ${renderFrac(1, 4)} bagian dari satu kue bolu. Berapa banyak siswa yang mendapatkan kue bolu tersebut?`,
+                options: [
+                    { text: `9 siswa`, isCorrect: false },
+                    { text: `10 siswa`, isCorrect: false },
+                    { text: `12 siswa`, isCorrect: true },
+                    { text: `15 siswa`, isCorrect: false }
+                ],
+                explanation: `Pembagian bilangan cacah dengan pecahan:<br>3 ÷ ${renderFrac(1, 4)} = 3 × ${renderFrac(4, 1)} = 12 siswa.`
+            },
+            {
+                id: 28,
+                category: "Soal Cerita",
+                qText: `Sebuah lapangan berbentuk persegi panjang memiliki panjang ${renderFrac(4, 5)} km dan lebar ${renderFrac(1, 2)} km. Berapa km² luas lapangan tersebut?`,
+                options: [
+                    { text: `${renderFrac(3, 10)} km²`, isCorrect: false },
+                    { text: `${renderFrac(4, 7)} km²`, isCorrect: false },
+                    { text: `${renderFrac(1, 2)} km²`, isCorrect: false },
+                    { text: `${renderFrac(2, 5)} km²`, isCorrect: true }
+                ],
+                explanation: `Luas = Panjang × Lebar<br>Luas = ${renderFrac(4, 5)} × ${renderFrac(1, 2)} = ${renderFrac(4, 10)}<br>Sederhanakan bagi 2: ${renderFrac(2, 5)} km².`
+            },
+            {
+                id: 29,
+                category: "Soal Cerita",
+                qText: `Dimas membeli 6 kg beras. Setiap hari keluarganya mengonsumsi ${renderFrac(2, 3)} kg beras. Berapa hari beras tersebut akan habis?`,
+                options: [
+                    { text: `9 hari`, isCorrect: true },
+                    { text: `8 hari`, isCorrect: false },
+                    { text: `12 hari`, isCorrect: false },
+                    { text: `4 hari`, isCorrect: false }
+                ],
+                explanation: `Pembagian:<br>6 ÷ ${renderFrac(2, 3)} = 6 × ${renderFrac(3, 2)} = ${renderFrac(18, 2)} = 9 hari.`
+            },
+            {
+                id: 30,
+                category: "Soal Cerita",
+                qText: `Santi membuat ${renderFrac(5, 6)} liter minuman es teh. Ia menuangkannya ke dalam beberapa gelas sehingga tiap gelas berisi ${renderFrac(5, 18)} liter. Berapa gelas yang diisi es teh?`,
+                options: [
+                    { text: `2 gelas`, isCorrect: false },
+                    { text: `4 gelas`, isCorrect: false },
+                    { text: `3 gelas`, isCorrect: true },
+                    { text: `5 gelas`, isCorrect: false }
+                ],
+                explanation: `Gunakan KFC:<br>${renderFrac(5, 6)} ÷ ${renderFrac(5, 18)} = ${renderFrac(5, 6)} × ${renderFrac(18, 5)} = ${renderFrac(90, 30)} = 3 gelas.`
+            }
+        ];
+
+        // STATE MANAGEMENT
+        let currentIndex = 0;
+        let activeFilter = 'all';
+        // Storage Structure: { qIndex: selectedOptionIndex }
+        let userAnswers = {};
+
+        const STORAGE_KEY = 'quiz_pecahan_k5_user_answers_v1';
+
+        // INITIALIZATION
+        window.addEventListener('DOMContentLoaded', () => {
+            loadFromLocalStorage();
+            renderGrid();
+            displayQuestion(currentIndex);
+            updateStats();
+        });
+
+        // LOCAL STORAGE FUNCTIONS
+        function saveToLocalStorage() {
+            try {
+                localStorage.setItem(STORAGE_KEY, JSON.stringify(userAnswers));
+                const statusEl = document.getElementById('save-status');
+                statusEl.textContent = '💾 Tersimpan';
+                statusEl.className = 'text-[11px] font-bold text-emerald-600 bg-emerald-50 px-2 py-0.5 rounded-full border border-emerald-200';
+            } catch (e) {
+                console.error("Local Storage Error", e);
+            }
+        }
+
+        function loadFromLocalStorage() {
+            const saved = localStorage.getItem(STORAGE_KEY);
+            if (saved) {
+                try {
+                    userAnswers = JSON.parse(saved);
+                } catch (e) {
+                    userAnswers = {};
+                }
+            }
+        }
+
+        // RENDER QUESTION GRID IN SIDEBAR
+        function renderGrid() {
+            const gridContainer = document.getElementById('question-grid');
+            gridContainer.innerHTML = '';
+
+            quizData.forEach((q, idx) => {
+                const isAnswered = userAnswers.hasOwnProperty(idx);
+                let btnStyle = "bg-slate-100 border-slate-200 text-slate-700 hover:bg-slate-200";
+
+                if (isAnswered) {
+                    const selectedOpt = userAnswers[idx];
+                    const isCorrect = q.options[selectedOpt].isCorrect;
+                    if (isCorrect) {
+                        btnStyle = "bg-emerald-500 border-emerald-600 text-white font-black shadow-sm";
+                    } else {
+                        btnStyle = "bg-rose-500 border-rose-600 text-white font-black shadow-sm";
+                    }
+                }
+
+                // Apply active highlight
+                if (idx === currentIndex) {
+                    btnStyle += " ring-2 ring-indigo-600 ring-offset-1";
+                }
+
+                // Filter check
+                let isHidden = false;
+                if (activeFilter === 'unanswered' && isAnswered) isHidden = true;
+                if (activeFilter === 'answered' && !isAnswered) isHidden = true;
+
+                if (!isHidden) {
+                    const btn = document.createElement('button');
+                    btn.className = `h-10 rounded-xl border text-xs font-bold transition flex items-center justify-center ${btnStyle}`;
+                    btn.textContent = idx + 1;
+                    btn.onclick = () => jumpToQuestion(idx);
+                    gridContainer.appendChild(btn);
+                }
+            });
+        }
+
+        // DISPLAY CURRENT QUESTION
+        function displayQuestion(index) {
+            currentIndex = index;
+            const q = quizData[index];
+            const isAnswered = userAnswers.hasOwnProperty(index);
+
+            // Update Header Badges
+            document.getElementById('question-category').textContent = q.category;
+            document.getElementById('question-number-badge').textContent = `Nomor ${index + 1} dari 30`;
+            document.getElementById('current-index-display').textContent = index + 1;
+
+            const statusBadge = document.getElementById('question-status-badge');
+            if (isAnswered) {
+                const isCorrect = q.options[userAnswers[index]].isCorrect;
+                statusBadge.textContent = isCorrect ? '✅ Dijawab (Benar)' : '❌ Dijawab (Salah)';
+                statusBadge.className = isCorrect ? 'text-xs font-extrabold text-emerald-600' : 'text-xs font-extrabold text-rose-600';
+            } else {
+                statusBadge.textContent = '⚪ Belum Diisi';
+                statusBadge.className = 'text-xs font-bold text-slate-400';
+            }
+
+            // Set Question Text
+            document.getElementById('question-text').innerHTML = q.qText;
+
+            // Render Options
+            const optionsContainer = document.getElementById('options-container');
+            optionsContainer.innerHTML = '';
+
+            const optionLabels = ['A', 'B', 'C', 'D'];
+
+            q.options.forEach((opt, optIdx) => {
+                const optBtn = document.createElement('button');
+                optBtn.className = getOptionStyle(index, optIdx);
+                optBtn.disabled = isAnswered;
+
+                optBtn.onclick = () => selectAnswer(index, optIdx);
+
+                optBtn.innerHTML = `
+                    <div class="flex items-center gap-3 w-full">
+                        <span class="w-7 h-7 rounded-lg border font-extrabold flex items-center justify-center text-xs shrink-0 ${getLabelStyle(index, optIdx)}">
+                            ${optionLabels[optIdx]}
+                        </span>
+                        <span class="text-sm font-semibold text-slate-800 leading-relaxed">
+                            ${opt.text}
+                        </span>
+                    </div>
+                `;
+
+                optionsContainer.appendChild(optBtn);
+            });
+
+            // Pembahasan Box
+            const expBox = document.getElementById('explanation-box');
+            const expText = document.getElementById('explanation-text');
+
+            if (isAnswered) {
+                expBox.classList.remove('hidden');
+                const isCorrect = q.options[userAnswers[index]].isCorrect;
+                expBox.className = isCorrect 
+                    ? 'mt-6 p-4 rounded-xl border border-emerald-200 bg-emerald-50/60 block text-xs sm:text-sm'
+                    : 'mt-6 p-4 rounded-xl border border-rose-200 bg-rose-50/60 block text-xs sm:text-sm';
+                
+                expText.innerHTML = q.explanation;
+            } else {
+                expBox.classList.add('hidden');
+            }
+
+            // Prev/Next Button state
+            document.getElementById('btn-prev').disabled = (index === 0);
+            document.getElementById('btn-next').disabled = (index === quizData.length - 1);
+
+            renderGrid();
+        }
+
+        // OPTION STYLING LOGIC
+        function getOptionStyle(qIdx, optIdx) {
+            const isAnswered = userAnswers.hasOwnProperty(qIdx);
+            const baseStyle = "w-full p-3.5 rounded-xl border text-left transition flex items-center justify-between cursor-pointer ";
+
+            if (!isAnswered) {
+                return baseStyle + "border-slate-200 bg-white hover:border-indigo-400 hover:bg-indigo-50/30";
+            }
+
+            const selectedOpt = userAnswers[qIdx];
+            const isCorrect = quizData[qIdx].options[optIdx].isCorrect;
+
+            if (optIdx === selectedOpt) {
+                if (isCorrect) {
+                    return baseStyle + "border-emerald-500 bg-emerald-50 ring-2 ring-emerald-500/20";
+                } else {
+                    return baseStyle + "border-rose-500 bg-rose-50 ring-2 ring-rose-500/20";
+                }
+            } else if (isCorrect) {
+                // Highlight correct answer if user answered wrong
+                return baseStyle + "border-emerald-400 bg-emerald-50/50";
+            } else {
+                return baseStyle + "border-slate-200 bg-slate-50 opacity-50";
+            }
+        }
+
+        function getLabelStyle(qIdx, optIdx) {
+            const isAnswered = userAnswers.hasOwnProperty(qIdx);
+
+            if (!isAnswered) {
+                return "border-slate-200 bg-slate-100 text-slate-600";
+            }
+
+            const selectedOpt = userAnswers[qIdx];
+            const isCorrect = quizData[qIdx].options[optIdx].isCorrect;
+
+            if (optIdx === selectedOpt) {
+                return isCorrect ? "bg-emerald-500 border-emerald-600 text-white" : "bg-rose-500 border-rose-600 text-white";
+            } else if (isCorrect) {
+                return "bg-emerald-500 border-emerald-600 text-white";
+            } else {
+                return "border-slate-200 bg-slate-100 text-slate-400";
+            }
+        }
+
+        // HANDLE ANSWER SELECTION
+        function selectAnswer(qIdx, optIdx) {
+            if (userAnswers.hasOwnProperty(qIdx)) return; // Already answered
+
+            userAnswers[qIdx] = optIdx;
+            saveToLocalStorage();
+            displayQuestion(qIdx);
+            updateStats();
+        }
+
+        // UPDATE STATS & SUMMARY
+        function updateStats() {
+            let correctCount = 0;
+            let wrongCount = 0;
+            const answeredCount = Object.keys(userAnswers).length;
+
+            Object.keys(userAnswers).forEach(qIdx => {
+                const selectedOpt = userAnswers[qIdx];
+                if (quizData[qIdx].options[selectedOpt].isCorrect) {
+                    correctCount++;
+                } else {
+                    wrongCount++;
+                }
+            });
+
+            // Calculate score scaled to 100
+            const score = Math.round((correctCount / quizData.length) * 100);
+
+            // Update Header Stats
+            document.getElementById('stat-answered').textContent = answeredCount;
+            document.getElementById('stat-score').textContent = score;
+
+            // Update Progress Bar
+            const progressPercent = (answeredCount / quizData.length) * 100;
+            document.getElementById('progress-bar').style.width = `${progressPercent}%`;
+
+            // Update Summary Card
+            document.getElementById('sum-correct').textContent = correctCount;
+            document.getElementById('sum-wrong').textContent = wrongCount;
+            document.getElementById('sum-score').textContent = score;
+        }
+
+        // NAVIGATION CONTROLS
+        function nextQuestion() {
+            if (currentIndex < quizData.length - 1) {
+                displayQuestion(currentIndex + 1);
+            }
+        }
+
+        function prevQuestion() {
+            if (currentIndex > 0) {
+                displayQuestion(currentIndex - 1);
+            }
+        }
+
+        function jumpToQuestion(index) {
+            displayQuestion(index);
+        }
+
+        // FILTER FUNCTIONS
+        function setFilter(filterType) {
+            activeFilter = filterType;
+
+            ['all', 'unanswered', 'answered'].forEach(f => {
+                const btn = document.getElementById(`btn-filter-${f}`);
+                if (f === filterType) {
+                    btn.className = "py-1 rounded-lg bg-white shadow-sm text-indigo-700 font-extrabold";
+                } else {
+                    btn.className = "py-1 rounded-lg text-slate-600 hover:text-slate-900 font-medium";
+                }
+            });
+
+            renderGrid();
+        }
+
+        // RESET FUNCTIONALITY
+        function confirmReset() {
+            document.getElementById('reset-modal').classList.remove('hidden');
+        }
+
+        function closeResetModal() {
+            document.getElementById('reset-modal').classList.add('hidden');
+        }
+
+        function executeReset() {
+            userAnswers = {};
+            localStorage.removeItem(STORAGE_KEY);
+            closeResetModal();
+            currentIndex = 0;
+            displayQuestion(0);
+            updateStats();
+        }
+    </script>
+</body>
+</html>
